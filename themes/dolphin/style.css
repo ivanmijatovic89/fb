@@ -451,18 +451,6 @@ color: #6B6B6B;
 border-radius: 3px;
 overflow: auto;
 }
-.photos-content{
-font-family: 'Segoe UI', Tahoma, Verdana, Arial, sans-serif;
-box-shadow: 0px 1px 1px #CCC;
-border: 1px solid #BFBFBF;
-background: #fff;
-color: #6B6B6B;
-border-radius: 3px;
-overflow: auto;
-}
-.photos-content > .nine {
-	width: 100%;
-}
 .message-header {
 background: #f8f8f8;
 padding: 10px;
@@ -2371,19 +2359,4 @@ background-size: 25px;
 	.welcome-user:last-child {
 	display: none;
 	}
-}
-
-/* MY CSS */
-.delete-img{
-	float: right;
-	cursor: pointer;
-}
-.edit-img{
-	width: 200px;
-	height: 25px;
-	clear: both;
-}
-.my-img{
-	width: auto;
-	float: left;
 }

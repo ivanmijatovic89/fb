@@ -19,3 +19,38 @@
 	</div>
 	</form>
 </div>
+
+<div class="page-inner" style="margin-top:50px;"><div class="page-title">Deactivate your account</div></div>
+{$message2}
+<form action="{$url}/index.php?a=settings&b=deactivate" method="post" id="form_deactivate">
+		</form>
+
+
+<div class="message-divider"></div>
+<div class="page-inner">
+	<div class="page-input-title"></div>
+	<div class="page-input-content">
+		<input type="submit" value="Deactivate" style="display:none;" id="submit_deactivate" />
+		<button onclick="confirm_account_deactivation()">Deactivate account</button>
+		<p id="demo"></p>
+	</div>
+	
+</div>
+
+
+
+
+
+<script>
+function confirm_account_deactivation() {
+    var x;
+    if (confirm("Do you wanna deactivate your account!") == true) {
+    	$('#form_deactivate').submit();
+        x = "You successfully deactivate your account";
+    } else {
+        x = "You pressed Cancel!";
+    }
+    document.getElementById("demo").innerHTML = x;
+    return false;
+}
+</script>

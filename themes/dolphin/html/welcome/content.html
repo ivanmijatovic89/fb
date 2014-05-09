@@ -4,6 +4,8 @@
 			<div class="welcome-message">
 				<div class="welcome-title">
 					{$lng->welcome_title}
+					{$email}
+					{$deactivated}
 				</div>
 				<div class="welcome-desc">
 					{$lng->welcome_desc}
@@ -11,6 +13,25 @@
 				<div class="welcome-about">
 					{$lng->welcome_about}
 				</div>
+
+				<div>
+					<h3>Invite friends to join.</h3>
+						{$invitation}
+						<form action="" method="POST" autocomplete="off">
+								email:
+								<br>
+								<input type="text" name="email_address" placeholder="email address" />		
+								<br>
+								<!-- Message to friend:
+								<br>
+								<textarea name="email_message"></textarea>
+								<br> -->
+
+								<input type="submit" value="Invite Friend" name="invitation">
+						</form>	
+				</div>
+
+
 			</div>
 			<div class="welcome-inputs">
 				<form action="" method="POST" autocomplete="off">
@@ -40,11 +61,23 @@
 
 				<br />
 				<form action="" method="POST" autocomplete="off">
+					<fieldset>
 					{$loginMsg}
-					<input type="text" id="short" name="username" placeholder="{$lng->username_or_email}" />
-					<input type="password" id="short" name="password" placeholder="{$lng->password}" />
-					<input type="checkbox" name="remember" value="1">
-					<button type="submit" name="login" class="login-button">{$lng->login}</button><span class="forgot-password"><a href="{$url}/index.php?a=recover">{$lng->forgot_password}</a></span>
+						<input type="text" id="short" name="username" placeholder="{$lng->username_or_email}" />
+						<input type="password" id="short" name="password" placeholder="{$lng->password}" />
+						<br>
+						<input type="checkbox" name="remember" value="1" style='width:20px;'> Remember me 
+						<br>
+						<button type="submit" name="login" class="login-button">{$lng->login}</button><span class="forgot-password"><a href="{$url}/index.php?a=recover">{$lng->forgot_password}</a></span>
+					</fieldset>
+					
+					<fieldset>
+					    <legend>Or use anohter service</legend>
+					     
+					    <a href="index.php?a=login-social&provider=facebook">Facebook</a><br />
+					    <a href="index.php?a=login-social&provider=linkedin">Linkedin</a><br>
+					    
+				    </fieldset>
 				</form>
 			</div>
 		</div>

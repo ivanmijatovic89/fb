@@ -279,7 +279,7 @@ function delete_the(id, type) {
 		$('#del_message_'+id).html('<div class="preloader-retina-large preloader-center"></div>');
 	} else if(type == 2) {
 		$('#del_chat_'+id).html('<div class="preloader-retina"></div>');
-	} 
+	}
 	
 	$.ajax({
 		type: "POST",
@@ -294,7 +294,7 @@ function delete_the(id, type) {
 					$('#message'+id).fadeOut(500, function() { $('#message'+id).remove(); });
 				} else if(type == 2) {
 					$('#chat'+id).fadeOut(500, function() { $('#chat'+id).remove(); });
-				} 
+				}
 			} else {
 				if(type == 0) {
 					$('#comment'+id).html($('#del_comment_'+id).html('Sorry, the comment could not be removed, please refresh the page and try again.'));
@@ -302,7 +302,7 @@ function delete_the(id, type) {
 					$('#message'+id).html($('#del_message_'+id).html('<div class="message-content"><div class="message-inner">Sorry, the message could not be removed, please refresh the page and try again.</div></div>'));
 				} else if(type == 2) {
 					$('#chat'+id).html($('#del_chat_'+id).html('Sorry, the chat message could not be removed, please refresh the page and try again.'));
-				} 
+				}
 			}
 		}
 	});

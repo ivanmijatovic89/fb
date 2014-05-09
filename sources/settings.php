@@ -1,4 +1,9 @@
 <?php
+ 
+
+ 
+
+ 
 function PageMain() {
 	global $TMPL, $LNG, $CONF, $db, $loggedIn, $settings;
 	
@@ -26,6 +31,37 @@ function PageMain() {
 				$userSettings = $updateUserSettings->getSettings();
 				
 				$page .= $skin->make();
+			} elseif($_GET['b'] == 'deactivate') {
+
+				
+				// SELEKTUJEM USER-a
+				$query = sprintf("SELECT * FROM `users` WHERE `username` = '%s' AND `password` = '%s'", $db->real_escape_string($loggedIn->username), $db->real_escape_string($loggedIn->password));
+				$result = $db->query($query);
+				$row = $result->fetch_assoc();
+
+				// uzme id od user-a
+				$idu = $row['idu'];
+				
+				// ovo je da upishe u deactivate tabelu
+				$query2 = move_user($row,'users_deactivated');
+				$result2 = $db->query($query2);
+
+				// izbrisem user-a iz tabele users
+				$query_delete =  sprintf("DELETE FROM `users` WHERE `idu` = '%s' ",$idu);
+				$result_delete = $db->query($query_delete);
+
+				unset($_SESSION['username']);
+				unset($_SESSION['password']);
+				setcookie("username", '', 1);
+				setcookie("password", '', 1);
+					// ovo je da izbaci logovanje preko facebook-a
+				Hybrid_Auth::logoutAllProviders();
+				
+				//redirektujem ga na stranicu gde moze da aktivira nalog i neku poruku mu jos izbacim
+				header("Location: ".$CONF['url']."/index.php?a=welcome&acc=deactivated");
+				//echo "deactivate"; 
+				
+
 			} elseif($_GET['b'] == 'avatar') {
 				$skin = new skin('settings/avatar'); $page = '';
 				
@@ -339,7 +375,7 @@ function PageMain() {
 	<a href="'.$CONF['url'].'/index.php?a=settings">'.$LNG['user_menu_general'].'</a> 
 	<a href="'.$CONF['url'].'/index.php?a=settings&b=avatar">'.$LNG['user_menu_avatar'].'</a>
 	<a href="'.$CONF['url'].'/index.php?a=settings&b=notifications">'.$LNG['user_menu_notifications'].'</a>
-	<a href="'.$CONF['url'].'/index.php?a=settings&b=security">'.$LNG['user_menu_security'].'</a>';
+	<a href="'.$CONF['url'].'/index.php?a=settings&b=security"> Deactivate acc / '.$LNG['user_menu_security'].'</a>';
 	
 	$TMPL['image'] = '<img src="'.$CONF['url'].'/thumb.php?src='.$verify['image'].'&t=a" width="80" height="80" />';	
 				

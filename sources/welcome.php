@@ -1,4 +1,8 @@
 <?php
+
+ini_set('display_errors',1);
+ini_set('display_startup_errors',1);
+error_reporting(-1);
 function PageMain() {
 	global $TMPL, $LNG, $CONF, $db, $loggedIn, $settings;
 	
@@ -7,6 +11,49 @@ function PageMain() {
 		<span class="welcome-captcha"><img src="'.$CONF['url'].'/includes/captcha.php" /></span>';
 	}
 	
+	if(isset($_GET['acc'])){
+		$TMPL['deactivated']=  'Your account have been deactivated, if you wanna activate your account log again !';
+	}
+
+
+	if(isset($_POST['invitation'])){
+		if (isset($_POST['email_address']) AND (!empty($_POST['email_address'])) ) { 
+				
+				if (filter_var($_POST['email_address'], FILTER_VALIDATE_EMAIL)) {
+
+
+				    	include('./includes/class.phpmailer.php');
+						$sve  = " Your friend with email ".$_POST['email_address']. " invite you to join website ";
+						$mail             = new PHPMailer(); 
+						$mail->AddReplyTo("name@yourdomain.com","First Last");
+						$mail->SetFrom("name@yourdomain.com","Xavier Johnson");
+						$mail->AddReplyTo("name@yourdomain.com","First Last");
+
+						$address = $_POST['email_address'];
+
+						$mail->AddAddress($address, "Xavier Johnson");
+						$mail->Subject    = "Invitation for networkingout.com";
+						$mail->AltBody    = "To view the message, please use an HTML compatible email viewer!"; // optional, comment out and test
+						$mail->MsgHTML($sve);
+						if(!$mail->Send()) {
+							$TMPL["email"] =  "Email invitation Error: " . $mail->ErrorInfo;
+						} else {
+							$TMPL["email"] =  "Email invitation sent!";
+							
+						}
+				}else{
+					$TMPL['invitation'] = 'Email address is invalid';
+				}
+
+			
+
+		}else{
+			$TMPL['invitation'] = 'You did not type email address !';
+		}
+	}
+
+
+
 	if(isset($_POST['register'])) {
 		// Register usage
 		$reg = new register();
@@ -46,13 +93,19 @@ function PageMain() {
 		$log->url = $CONF['url'];
 		$log->username = $_POST['username'];
 		$log->password = $_POST['password'];
-		$log->remember = $_POST['remember'];
+		if(isset($_POST['remember'])){
+			$remember = 1;
+		}else{
+			$remember = 0;
+		}
+		$log->remember = $remember;
 		
 		$TMPL['loginMsg'] = notificationBox('transparent', $LNG['error'], $log->in(), 1);
 	}
 	
 	if(isset($_SESSION['username']) && isset($_SESSION['password']) || isset($_COOKIE['username']) && isset($_COOKIE['password'])) {
 		
+
 		$verify = $loggedIn->verify();
 
 		if($verify['username']) {
@@ -67,6 +120,7 @@ function PageMain() {
 		$users[] = $row;
 	}
 	
+	
 	$TMPL['rows'] = showUsers($users, $CONF['url']);
 	
 	$TMPL['url'] = $CONF['url'];
@@ -75,6 +129,8 @@ function PageMain() {
 	$TMPL['ad'] = $settings['ad1'];
 	
 	$skin = new skin('welcome/content');
+	
 	return $skin->make();
+
 }
 ?>

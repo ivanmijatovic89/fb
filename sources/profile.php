@@ -2,32 +2,32 @@
 function PageMain() {
 	global $TMPL, $LNG, $CONF, $db, $loggedIn, $settings;
 	
-	// if(isset($_SESSION['username']) && isset($_SESSION['password']) || isset($_COOKIE['username']) && isset($_COOKIE['password'])) {	
-	// 	$verify = $loggedIn->verify();
+	if(isset($_SESSION['username']) && isset($_SESSION['password']) || isset($_COOKIE['username']) && isset($_COOKIE['password'])) {	
+		$verify = $loggedIn->verify();
 		
-	// 	if(empty($verify['username'])) {
-	// 		// If fake cookies are set, or they are set wrong, delete everything and redirect to home-page
-	// 		$loggedIn->logOut();
-	// 		header("Location: ".$CONF['url']."/index.php?a=welcome");
-	// 	}
+		if(empty($verify['username'])) {
+			// If fake cookies are set, or they are set wrong, delete everything and redirect to home-page
+			$loggedIn->logOut();
+			header("Location: ".$CONF['url']."/index.php?a=welcome");
+		}
 		
-	// 	// If the $_GET user is empty, define default user as current logged in user, else redirect to home-pag
-	// 	if($_GET['u'] == '') {
-	// 		$_GET['u'] = (!empty($verify['username']) ? $verify['username'] : header("Location: ".$CONF['url']."/index.php?a=welcome"));
-	// 	}
+		// If the $_GET user is empty, define default user as current logged in user, else redirect to home-pag
+		if($_GET['u'] == '') {
+			$_GET['u'] = (!empty($verify['username']) ? $verify['username'] : header("Location: ".$CONF['url']."/index.php?a=welcome"));
+		}
 		
-	// 	// If the current user is the same with the viewed profile, display the Message Form
-	// 	if($verify['username'] == $_GET['u']) {
-	// 		$skin = new skin('shared/top'); $top = '';
+		// If the current user is the same with the viewed profile, display the Message Form
+		if($verify['username'] == $_GET['u']) {
+			$skin = new skin('shared/top'); $top = '';
 		
-	// 		$TMPL['theme_url'] = $CONF['theme_url'];
-	// 		$TMPL['private_message'] = $verify['privacy'];
-	// 		$TMPL['avatar'] = $verify['image'];
-	// 		$TMPL['url'] = $CONF['url'];
+			$TMPL['theme_url'] = $CONF['theme_url'];
+			$TMPL['private_message'] = $verify['privacy'];
+			$TMPL['avatar'] = $verify['image'];
+			$TMPL['url'] = $CONF['url'];
 
-	// 		$top = $skin->make();
-	// 	}
-	// }
+			$top = $skin->make();
+		}
+	}
 		 
 	// Start displaying the Feed
 	$feed = new feed();
@@ -92,38 +92,25 @@ function PageMain() {
 		$TMPL['messages'] = $timeline;
 	}
 	
-	if($_GET['p'] == 'photos'){
-		$skin = new skin('profile/photos'); $rows = '';
-
-		$TMPL['username'] = $_GET['u'];
-		$TMPL['theme_url'] = $CONF['theme_url'];
-		$TMPL['request_uri'] = $_SERVER['REQUEST_URI'];
-
-		$rows = $skin->make();
-
-	}else{
-		$rows = $skin->make();
-		
-		$skin = new skin('profile/sidebar'); $sidebar = '';
-		// If the username doesn't exist
-		if($message !== 1) {
-			$TMPL['about'] = $feed->fetchProfileInfo($feed->profileData($_GET['u']));
-			$TMPL['sidebar'] = $feed->sidebarTypes($_GET['filter'], 'profile');
-			$TMPL['dates'] = $feed->sidebarDates($_GET['filter'], 'profile');
-
-			$TMPL['places'] = $feed->sidebarPlaces($feed->profile_data['idu']);
-			
-			$TMPL['subscriptions'] = $feed->sidebarSubs(0, $subscriptions, 0);
-			$TMPL['subscribers'] = $feed->sidebarSubs(1, $subscribers, 0);
-			$TMPL['ad'] = generateAd($settings['ad4']);
-		} else {
-			$skin = new skin('profile/sidebar'); $sidebar = '';
-			$TMPL['ad'] = generateAd($settings['ad4']);
-		}
-		$sidebar = $skin->make();
-	}
-
+	$rows = $skin->make();
 	
+	$skin = new skin('profile/sidebar'); $sidebar = '';
+	// If the username doesn't exist
+	if($message !== 1) {
+		$TMPL['about'] = $feed->fetchProfileInfo($feed->profileData($_GET['u']));
+		$TMPL['sidebar'] = $feed->sidebarTypes($_GET['filter'], 'profile');
+		$TMPL['dates'] = $feed->sidebarDates($_GET['filter'], 'profile');
+
+		$TMPL['places'] = $feed->sidebarPlaces($feed->profile_data['idu']);
+		
+		$TMPL['subscriptions'] = $feed->sidebarSubs(0, $subscriptions, 0);
+		$TMPL['subscribers'] = $feed->sidebarSubs(1, $subscribers, 0);
+		$TMPL['ad'] = generateAd($settings['ad4']);
+	} else {
+		$skin = new skin('profile/sidebar'); $sidebar = '';
+		$TMPL['ad'] = generateAd($settings['ad4']);
+	}
+	$sidebar = $skin->make();
 	
 	$TMPL = $TMPL_old; unset($TMPL_old);
 	$TMPL['top'] = $top;

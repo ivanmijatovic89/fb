@@ -146,6 +146,13 @@ class register {
 		
 		return ($result->num_rows == 0) ? 0 : 1;
 	}
+
+	function verify_if_deativated_user_exist() {
+		$query = sprintf("SELECT `username` FROM `users_deactivated` WHERE `username` = '%s'", $this->db->real_escape_string(strtolower($this->username)));
+		$result = $this->db->query($query);
+		
+		return ($result->num_rows == 0) ? 0 : 1;
+	}
 	
 	function verify_if_email_exists() {
 		$query = sprintf("SELECT `email` FROM `users` WHERE `email` = '%s'", $this->db->real_escape_string(strtolower($this->email)));
@@ -236,6 +243,9 @@ class register {
 		// Define the Language variable for each type of error
 		if($this->verify_if_user_exist() !== 0) {
 			$error[] .= 'user_exists';
+		}	
+		if($this->verify_if_deativated_user_exist() !== 0) {
+			$error[] .= 'user_exists';
 		}
 		if($this->verify_if_email_exists() !== 0) {
 			$error[] .= 'email_exists';
@@ -243,13 +253,13 @@ class register {
 		if(empty($this->username) && empty($this->password) && empty($email)) {
 			$error[] .= 'all_fields';
 		}
-		if(strlen($this->password) <= 2) {
+		if(strlen($this->password) <= 6) {
 			$error[] .= 'password_too_short';
 		}
 		if(!ctype_alnum($this->username)) {
 			$error[] .= 'user_alnum';
 		}
-		if(strlen($this->username) <= 2 || strlen($this->username) >= 33) {
+		if(strlen($this->username) <= 4 || strlen($this->username) >= 33) {
 			$error[] .= 'user_too_short';
 		}
 		if(!filter_var($this->email, FILTER_VALIDATE_EMAIL)) {
@@ -280,6 +290,7 @@ class logIn {
 	public $username;	// Username Property
 	public $password;	// Password Property
 	public $remember;	// Option to remember the usr / pwd (_COOKIE) Property
+	public $provider_uid;	
 	
 	function in() {
 		global $LNG;
@@ -296,14 +307,122 @@ class logIn {
 			
 			// Redirect the user to his personal profile
 			header("Location: ".$this->url."/index.php?a=feed");
-		} else {
+		} elseif($this->isDeactivated() == 1 ){
+
+				//selektuje deaktiviranog user-a
+					$query = sprintf("SELECT * FROM `users_deactivated` WHERE `username` = '%s' AND `password` = '%s'",  $this->db->real_escape_string($this->username), md5($this->db->real_escape_string($this->password)));
+					$result = $this->db->query($query);
+					$row = $result->fetch_assoc();
+				// uzme id od user-a
+					$idu = $row['idu'];
+				
+				// ovo je da upishe u deactivate tabelu
+					$query2 = move_user($row,'users');
+					$result2 = $this->db->query($query2);
+
+				// izbrisem user-a iz tabele deactivated_users
+					$query_delete =  sprintf("DELETE FROM `users_deactivated` WHERE `idu` = '%s' ",$idu);
+					$result_delete = $this->db->query($query_delete);
+			
+				// uloguj korisnika 
+					if($this->remember == 1) 
+					{ 
+					// If checkbox, then set cookie
+						setcookie("username", $this->username, time() + 30 * 24 * 60 * 60); // Expire in one month
+						setcookie("password", md5($this->password), time() + 30 * 24 * 60 * 60); // Expire in one month
+					} 
+					else 
+					{ 
+					// Else set session
+						$_SESSION['username'] = $this->username;
+						$_SESSION['password'] = md5($this->password);
+
+					}
+
+					header("Location: ".$CONF['url']."/index.php?a=feed");
+
+
+		}else {
 			// If wrong credentials are entered, unset everything
 			$this->logOut();
 			
 			return $LNG['invalid_user_pw'];
 		}
 	}
+
+	function socialIn()
+	{
+		if($this->socialLogIn() == 1) {
+			if($this->remember == 1) { // If checkbox, then set cookie
+				setcookie("username", $this->username, time() + 30 * 24 * 60 * 60); // Expire in one month
+				setcookie("password", md5($this->provider_uid), time() + 30 * 24 * 60 * 60); // Expire in one month
+			} else { // Else set session
+				$_SESSION['username'] = $this->username;
+				$_SESSION['password'] = md5($this->provider_uid);
+			}
+			 	
+			// Redirect the user to his personal profile
+			header("Location: ".$this->url."/index.php?a=feed");
+
+
+
+
+
+		// }elseif($this->socialLogIn_deactivated() == 1 ){
+		// 		//selektuje deaktiviranog user-a
+		// 			$query = sprintf("SELECT * FROM `users_deactivated` WHERE `provider_uid` = '%s' ", $this->db->real_escape_string($this->provider_uid));
+		// 			$result = $this->db->query($query);
+		// 			$row = $result->fetch_assoc();
+		// 		// uzme id od user-a
+		// 			$idu = $row['idu'];
+				
+		// 		// ovo je da upishe u deactivate tabelu
+		// 			$query2 = move_user($row,'users');
+		// 			$result2 = $this->db->query($query2);
+
+		// 		// izbrisem user-a iz tabele deactivated_users
+		// 			$query_delete =  sprintf("DELETE FROM `users_deactivated` WHERE `idu` = '%s' ",$idu);
+		// 			$result_delete = $this->db->query($query_delete);
+			
+		// 		// uloguj korisnika 
+		// 			if($this->remember == 1) 
+		// 			{ // If checkbox, then set cookie
+		// 				setcookie("username", $this->username, time() + 30 * 24 * 60 * 60); // Expire in one month
+		// 				setcookie("password", md5($this->password), time() + 30 * 24 * 60 * 60); // Expire in one month
+		// 			} 
+		// 			else 
+		// 			{ // Else set session
+		// 				$_SESSION['username'] = $this->username;
+		// 				$_SESSION['password'] = md5($this->password);
+
+		// 			}
+
+		// 			header("Location: ".$CONF['url']."/index.php?a=feed");
+
+		}else { 
+			// If wrong credentials are entered, unset everything
+			$this->logOut();
+			
+			return $LNG['invalid_user_pw'];
+		}
+	}
+
+
+	function socialLogIn(){
+		$query = sprintf("SELECT * FROM `users` WHERE `provider_uid` = '%s' ", $this->db->real_escape_string($this->provider_uid));
+		$result = $this->db->query($query);
+		// proveriti dal je nalog deaktiviran ako jeste nemoj prikazivati sta ? ? ?
+		//echo ($result->num_rows == 0) ? 0 : 1; echo '-------------';die();
+		return ($result->num_rows == 0) ? 0 : 1;
+	}
 	
+	function socialLogIn_deactivated(){
+		$query = sprintf("SELECT * FROM `users_deactivated` WHERE `provider_uid` = '%s' ", $this->db->real_escape_string($this->provider_uid));
+		$result = $this->db->query($query);
+		// proveriti dal je nalog deaktiviran ako jeste nemoj prikazivati sta ? ? ?
+
+		return ($result->num_rows == 0) ? 0 : 1;
+	}
 	function queryLogIn() {
 		// If the username input string is an e-mail, switch the query
 		if(filter_var($this->db->real_escape_string($this->username), FILTER_VALIDATE_EMAIL)) {
@@ -315,12 +434,26 @@ class logIn {
 		
 		return ($result->num_rows == 0) ? 0 : 1;
 	}
+
+	function isDeactivated(){
+		// If the username input string is an e-mail, switch the query
+		if(filter_var($this->db->real_escape_string($this->username), FILTER_VALIDATE_EMAIL)) {
+			$query = sprintf("SELECT * FROM `users_deactivated` WHERE `email` = '%s' AND `password` = '%s'", $this->db->real_escape_string($this->username), md5($this->db->real_escape_string($this->password)));
+		} else {
+			$query = sprintf("SELECT * FROM `users_deactivated` WHERE `username` = '%s' AND `password` = '%s'", $this->db->real_escape_string($this->username), md5($this->db->real_escape_string($this->password)));
+		}
+		$result = $this->db->query($query);
+		
+		return ($result->num_rows == 0) ? 0 : 1;
+	}
 	
 	function logOut() {
 		unset($_SESSION['username']);
 		unset($_SESSION['password']);
 		setcookie("username", '', 1);
 		setcookie("password", '', 1);
+			// ovo je da izbaci logovanje preko facebook-a
+		Hybrid_Auth::logoutAllProviders();
 	}
 }
 
@@ -358,6 +491,8 @@ class loggedIn {
 		unset($_SESSION['password']);
 		setcookie("username", '', 1);
 		setcookie("password", '', 1);
+		// ovo je da izbaci logovanje preko facebook-a
+		Hybrid_Auth::logoutAllProviders();
 	}
 }
 
@@ -1204,7 +1339,7 @@ class feed {
 							</div>
 						</div>
 						<div class="message-divider"></div>
-						'.$this->getType($row['type'], $row['value'], $row['id'], $row['parent_id']).'
+						'.$this->getType($row['type'], $row['value'], $row['id']).'
 						<div class="message-replies">
 							<div class="message-actions"><div class="message-actions-content" id="message-action'.$row['id'].'">'.$this->getActions($row['id'], $row['likes'], null).'</div></div>
 							<div class="message-replies-content" id="comments-list'.$row['id'].'">
@@ -1411,7 +1546,7 @@ class feed {
 								</div>
 								<div class="cover-description-content">
 									<span id="author'.$profile['idu'].$profile['username'].'"></span><span id="time'.$profile['idu'].$profile['username'].'"></span><div class="cover-username">'.realName($profile['username'], $profile['first_name'], $profile['last_name']).''.((!empty($profile['verified'])) ? '<img src="'.$this->url.'/'.$CONF['theme_url'].'/images/icons/verified.png" title="'.$LNG['verified_user'].'" />' : '').'</div>
-									<div class="cover-description-buttons"><div id="subscribe'.$profile['idu'].'">'.$this->getSubscribe(null, null, null).'</div>'.$this->chatButton($profile['idu'], $profile['username'], 1).' <a href="index.php?a=profile&u='.$profile['username'].'&p=photos">Photos</a></div>
+									<div class="cover-description-buttons"><div id="subscribe'.$profile['idu'].'">'.$this->getSubscribe(null, null, null).'</div>'.$this->chatButton($profile['idu'], $profile['username'], 1).'</div>
 								</div>
 							</div>
 						</div>
@@ -2114,22 +2249,10 @@ class feed {
 
 		return $parsedMessage;
 	}
-
-	function get_album_photos($album_id){
-		$query = sprintf("SELECT a.value,a.tags,a.location,a.likes,a.id FROM album_photos a WHERE a.album_id=%d", $album_id);
-
-   		$result = $this->db->query($query);
-
-   		return $result;
-
-	}
-
-
 	
-	function getType($type, $value, $id, $parent_id) {
+	function getType($type, $value, $id) {
 		global $LNG, $CONF;
 		// Switch the case
-
 		switch($type) {
 		
 			// If it's a map
@@ -2218,80 +2341,6 @@ class feed {
 					return '<div class="message-type-player"><iframe width="100%" height="315" src="http://player.vimeo.com/video/'.str_replace('vm:', '', $value).'" frameborder="0" allowfullscreen></iframe></div>
 					<div class="message-divider"></div>';
 				}
-			// If it's a album	
-			case "album":
-				$result .= '<div class="message-type-image"><div class="image-container-padding">';
-				$result .= '<table>';
-
-				$i = 0;
-
-				$album_photos = $this->get_album_photos($parent_id);
-
-				while ($row = $album_photos->fetch_array()) {
-					if($i == 0){
-						$result .= '<tr>';
-					}
-					$result .= '<td>';
-					$result .= '<a onclick="gallery(\''.$row[0].'\', '.$id.', \'media\')" id="'.$row[0].'">';
-						$result .= '<div class="image-thumbnail-container">'; 
-							$result .='<div class="image-thumbnail">';
-								$result .= '<img src="'.$this->url.'/thumb.php?src='.$row[0].'&w=300&h=300&t=m">'; 
-								
-							$result .='</div>'; 														
-						$result .='</div>';
-					$result .= '</a>';
-					if(!empty($row[2])){
-						$result .= '<span>In '.$row[2].'</span>';
-					}								
-					$result .= '<span class="like_btn"> '.$row[3].'</span>';
-					if(!empty($row[1])){
-						$tags = unserialize($row[1]);
-						$result .= '<br/>';
-						foreach($tags as $user){
-							$result .= '<a href="index.php?a=profile&u='.$user.'">'.$user.'</a><br/>';
-						}
-					}
-					$result .= '<a onclick="doLike2('.$row[4].', 1)" id="doLike288" style="float:right;">Like</a>';
-					$result .= '</td>';
-
-					$i++;
-
-					if($i == 3){
-						$result .= '</tr>';
-						$i = 0;
-					}
-				}
-
-				$result .= '</table>';
-				$result .= '</div>';
-
-				return $result.'</div><div class="message-divider"></div>';
-				break;
-
-				// $images = explode(',', $value);
-				// if(count($images) == 1) {
-				// 	$result .= '<div class="message-type-image">';
-				// 	$i = 0;
-				// 	foreach($images as $image) {
-				// 		if(!empty($image)){
-				// 			$result .= '<a onclick="gallery(\''.$image.'\', '.$id.', \'media\')" id="'.$image.'"><img src="'.$this->url.'/thumb.php?src='.$image.'&w=650&h=300&t=m" /></a>';
-				// 		}else{
-				// 			$result .= "This picture has been deleted";
-				// 		}
-						
-				// 		$i++;
-				// 	}
-				// } else {
-				// 	$result .= '<div class="message-type-image"><div class="image-container-padding">';
-				// 	$i = 0;
-				// 	foreach($images as $image) {
-				// 		$result .= '<a onclick="gallery(\''.$image.'\', '.$id.', \'media\')" id="'.$image.'"><div class="image-thumbnail-container"><div class="image-thumbnail"><img src="'.$this->url.'/thumb.php?src='.$image.'&w=204&h=204&t=m" /></div></div></a>';
-				// 		$i++;
-				// 	}
-				// 	$result .= '</div>';
-				// }
-				// return $result.'</div><div class="message-divider"></div>';
-				// break;
 				
 			// If it's empty
 			case "":
@@ -2327,7 +2376,7 @@ class feed {
 			$stmt = $this->db->prepare("DELETE FROM `chat` WHERE `id` = '{$this->db->real_escape_string($id)}' AND `from` = '{$this->db->real_escape_string($this->id)}'");
 			
 			$x = 2;
-		} 
+		}
 
 		// Execute the statement
 		$stmt->execute();
@@ -2584,7 +2633,6 @@ class feed {
 			// Start the output
 			$link = '<div class="sidebar-container widget-types"><div class="sidebar-content"><div class="sidebar-header">'.$LNG['filter_events'].'</div>';
 			$link .= '<div class="sidebar-link"><a href="'.$this->url.'/index.php?a='.$_GET['a'].$profile.'"><img src="'.$this->url.'/'.$CONF['theme_url'].'/images/icons/events/all.png" />'.$LNG["all_events"].'</a></div>';
-
 			foreach($row as $type) {
 				// Start the strong tag
 				if($type == $bold) {
@@ -4056,5 +4104,27 @@ function deletePhotos($type, $value) {
 			unlink('../uploads/media/'.$image);
 		}
 	}
+}
+
+//--------------------------------------------------------------------------------------------- odavde krecu moje scripte !!!gg 
+function move_user($array,$table) {
+   $count = 0;
+   $fields = '';
+
+   foreach($array as $col => $val) {
+      if ($count++ != 0) $fields .= ', ';
+      $col = $col;
+      $val = $val;
+      if(is_null($val)){
+      	$val = "NULL";
+      }elseif(is_numeric($val)){
+      	$val = (int)$val;
+      }else{
+      	$val = '"'. $val .'"';
+      }
+      $fields .= "`$col` = $val";
+   }
+
+  return $query = "INSERT INTO `$table` SET $fields;";
 }
 ?>

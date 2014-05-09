@@ -185,7 +185,6 @@ $LNG['sidebar_chats'] = 'Chats';
 $LNG['sidebar_suggestions'] = 'Friends Suggestions';
 $LNG['sidebar_trending'] = 'Trending topics';
 $LNG['sidebar_friends_activity'] = 'Friends Activity';
-$LNG['sidebar_album'] = 'Albums';
 
 // MESSAGES / CHAT //
 $LNG['lonely_here'] = 'It\'s lonely here, how about making some friends?';

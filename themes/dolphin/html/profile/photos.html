@@ -1,0 +1,245 @@
+<link href="/{$theme_url}/css/jquery.remodal.css" rel="stylesheet" type="text/css" />
+<link href="/{$theme_url}/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+<link href="/{$theme_url}/css/token-input.css" rel="stylesheet" type="text/css" />
+<link href="/{$theme_url}/css/dialog.css" rel="stylesheet" type="text/css" />
+
+<div class="photos-content" style="padding: 4%;">
+	<h2>Photos</h2>	
+	<div id="my_photos"></div>
+</div>
+
+<!-- MODAL FOR CREATE ALBUM -->
+<div class="remodal" data-remodal-id="modal">
+	<input type="hidden" id="modal_type" value="">
+	<input type="hidden" id="album_id" value="">
+	<div class="modal-header">
+		<input type="text" name="tbAlbumName" id="tbAlbumName" placeholder="Untitled Album" class="modal-text"><br/>
+		<input type="text" name="tbAlbumDesc" id="tbAlbumDesc" placeholder="Say something about this album..." class="modal-text">
+	</div>
+	<div class="modal-content">
+		
+	</div>
+	<div class="modal-footer">
+		<br/>
+		<div class="fileinput fileinput-new" data-provides="fileinput" style="float:left;">
+          	<div class="fileinput-preview fileinput-exists thumbnail" style="max-width: 200px; max-height: 200px;display:none;"></div>
+          	<div>
+	          	<span class="btn btn-default btn-file">
+	          		<span class="fileinput-new">Add Photos</span>
+		          	<span class="fileinput-exists">Add Photos</span>
+		          	<input type="file" name="...">
+		      	</span>
+          	</div>
+        </div>
+		<button class="remodal-cancel">Cancel</button>
+    	<button class="post-photos">Post Photos</button>
+	</div> 
+</div>
+
+<div id="dialog-location" title="Location">
+	<input type="hidden" id="modal_id">
+	<input type="text" id="img-location-input">
+</div>
+
+<div id="dialog-tags" title="Tag photo">
+	<input type="hidden" id="modal_id">	
+    <input type="text" id="demo-input-prevent-duplicates" class="img-tags-input" name="blah" />
+    <input type="button" value="Submit" class="add-tags"/>
+    <script type="text/javascript">
+    $(document).ready(function() {
+        $("#demo-input-prevent-duplicates").tokenInput("/custom/get_friends.php", {
+            preventDuplicates: true
+        });
+    });
+    </script>
+</div>
+
+
+<input type="hidden" id="username" value="{$username}">
+<input type="hidden" id="uri" value="{$request_uri}">
+
+<script type="text/javascript" src="/{$theme_url}/js/jquery.remodal.js"></script>
+<script type="text/javascript" src="/{$theme_url}/js/fileinput.js"></script>
+<script type="text/javascript" src="/{$theme_url}/js/dialog.js"></script>
+<script type="text/javascript" src="/{$theme_url}/js/jquery.tokeninput.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function() {
+    $(".add-tags").click(function () {
+        
+        var modal_id = $('#modal_id').val();
+
+		$('#'+modal_id+' #tag_users_id').val($(this).siblings("input[type=text]").val());
+
+		$.each($('.token-input-token p'), function() { 
+			$('#'+modal_id+' .img-tags').append($(this).html()+'<br/>');
+		});
+
+		$( "#dialog-tags" ).dialog("close");
+		
+    });
+});
+</script>
+
+<script>
+$(function() {
+	 $( "#dialog-location" ).dialog({
+	 	autoOpen: false,
+		modal: true,
+		buttons: {
+			Ok: function() {
+				var modal_id = $('#modal_id').val();
+
+				var img_loc = $('#img-location-input').val();
+
+				$('#'+modal_id+' .img-loc').html(img_loc);
+				$( this ).dialog( "close" );
+			}
+		}
+	});
+
+	 $( "#dialog-tags" ).dialog({
+	 	autoOpen: false,
+		modal: true
+	});
+});
+
+function open_dialog_loc(id){
+	$( "#modal_id" ).val(id);
+	$( "#img-location-input" ).val("");
+	$( "#dialog-location" ).dialog( "open" );
+}
+function open_dialog_tag(id){
+	$( "#modal_id" ).val(id);
+	$( "#img-tags-input" ).val("");
+	$( "#dialog-tags" ).dialog( "open" );
+}
+</script>
+
+
+<script type="text/javascript">
+	$('.photos-content').parent().css({ "width" : "100%" });
+
+	var user = $('#username').val();
+	var uri = $('#uri').val();
+
+	$.post("/custom/ajax.php",{ action: 'get_photos', username: user, uri: uri },function(data){
+		$('#my_photos').html(data);
+	});
+
+</script>
+
+<script type="text/javascript">
+	//OPEN ALBUM
+	function open_album(id){
+		var user = $('#username').val();
+
+		$.post("/custom/ajax.php",{ action: 'open_album', id: id, username: user },function(data){
+			$('#albums').hide();
+			$('#open_album').show();
+			$('#open_album').html(data);
+		});
+
+	}
+
+	//FORWARDS NAME AND DESC OF ALBUM TO MODAL
+	function forward_album_info(name, desc, type, album_id){
+		$('#modal_type').val(type);
+		$('#album_id').val(album_id);
+
+		if(type == 'add_photos'){
+			$('#tbAlbumName').val(name);
+			$('#tbAlbumDesc').val(desc);
+		}
+				
+	}
+</script>
+
+<script type="text/javascript">
+	function remove_img(e){
+		e.parentNode.parentNode.removeChild(e.parentNode);
+	}
+</script>
+
+<script type="text/javascript">
+	//POST PHOTOS / CREATE ALBUM
+	$('.post-photos').click(function(){
+
+		var type = $('#modal_type').val();	
+
+		var user = $('#username').val();
+		var imgs = [];	
+		var name = $('#tbAlbumName').val();
+		var desc = $('#tbAlbumDesc').val();
+		var album_id = $('#album_id').val();
+
+		$( ".modal-img" ).each(function( index ) {
+			var im = [];	
+
+			im.push($( this ).find('img').attr('src'));
+			im.push($( this ).find('.img-loc').html());
+			im.push($( this ).find('#tag_users_id').val());
+
+			imgs.push(im);	
+		});
+
+		if(imgs.length > 0){
+			if(type == 'create_album'){
+				$.post("/custom/ajax.php",{ action: 'post_photos', imgs: imgs, username: user, name: name, desc: desc },function(data){
+					$('.modal-content').html('Album successfully created');	
+					window.location.replace('index.php?a=profile&u='+user+'&p=photos');
+				});
+			}else if(type == 'add_photos'){
+				$.post("/custom/ajax.php",{ action: 'add_photos', imgs: imgs, username: user, name: name, desc: desc, album_id: album_id },function(data){
+					$('.modal-content').html('Album successfully created');	
+					window.location.replace('index.php?a=profile&u='+user+'&p=photos');
+				});
+			}else{
+				alert('Close the popup and try again.');
+			}
+					
+		}else{
+			$('.modal-content').html('You have not selected pictures.');
+		}
+
+		
+	});
+</script>
+
+<script type="text/javascript">
+	function delete_img(id, value, user){
+		var conf = confirm("Are you sure you want to delete this image?");
+		var user = $('#username').val();
+
+		if(conf){
+			$.post("/custom/ajax.php",{ action: 'delete_photo', id: id, value: value, username: user },function(data){
+				if(data){
+					$('#img'+id).remove();
+				}else{
+					alert('Image is not deleted.');
+				}
+			});
+		}
+	}
+
+	function delete_post(id){
+		var conf = confirm("Are you sure you want to delete this image?");
+
+		if(conf){
+			delete_the(id, 1);
+			$('#post'+id).remove();
+		}
+	}
+
+	function delete_album(id){
+		var conf = confirm("Are you sure you want to delete this album?\nAll images from this album will be deleted.");
+		var user = $('#username').val();
+
+		if(conf){
+			$.post("/custom/ajax.php",{ action: 'delete_album', id: id, username: user },function(data){
+				$('#album'+id).remove();
+			});
+		}
+	}
+
+</script>

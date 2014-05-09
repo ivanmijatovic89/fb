@@ -1,0 +1,45 @@
+.fileinput{display:inline-block;margin-bottom:9px;float:left;}.fileinput .uneditable-input{display:inline-block;margin-bottom:0;vertical-align:middle;cursor:text}.fileinput .thumbnail{display:inline-block;margin-bottom:5px;overflow:hidden;text-align:center;vertical-align:middle}
+.fileinput .thumbnail>img{max-height:180px;max-width:180px;}
+.fileinput .btn{vertical-align:middle}.fileinput-exists .fileinput-new,.fileinput-new .fileinput-exists{display:none}.fileinput-inline .fileinput-controls{display:inline}.fileinput .uneditable-input{white-space:normal}.fileinput-new .input-group .btn-file{border-radius:0 4px 4px 0}.fileinput-new .input-group .btn-file.btn-xs,.fileinput-new .input-group .btn-file.btn-sm{border-radius:0 3px 3px 0}.fileinput-new .input-group .btn-file.btn-lg{border-radius:0 6px 6px 0}.form-group.has-warning .fileinput .uneditable-input{color:#c09853;border-color:#faebcc}.form-group.has-warning .fileinput .fileinput-preview{color:#c09853}.form-group.has-warning .fileinput .thumbnail{border-color:#faebcc}.form-group.has-error .fileinput .uneditable-input{color:#b94a48;border-color:#ebccd1}.form-group.has-error .fileinput .fileinput-preview{color:#b94a48}.form-group.has-error .fileinput .thumbnail{border-color:#ebccd1}.form-group.has-success .fileinput .uneditable-input{color:#468847;border-color:#d6e9c6}.form-group.has-success .fileinput .fileinput-preview{color:#468847}.form-group.has-success .fileinput .thumbnail{border-color:#d6e9c6}
+.btn-file > input {
+    cursor: pointer;
+    direction: ltr;
+    font-size: 23px;
+    margin: 0;
+    opacity: 0;
+    position: absolute;
+    right: 0;
+    top: 0;
+    cursor: pointer;
+}
+.fileinput .btn {
+    vertical-align: middle;
+}
+.btn-file {
+    overflow: hidden;
+    position: relative;
+    vertical-align: middle;
+}
+.btn-default {
+
+    border-color: #CCCCCC;
+    color: #fff !important;
+    background-color: #da1616 !important;
+}
+.btn {
+    -moz-user-select: none;
+    background-image: none;
+    border: 1px solid rgba(0, 0, 0, 0);
+    border-radius: 4px;
+    cursor: pointer;
+    display: inline-block;
+    font-size: 14px;
+    font-weight: normal;
+    line-height: 1.42857;
+    margin-bottom: 0;
+    padding: 6px 12px;
+    text-align: center;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
